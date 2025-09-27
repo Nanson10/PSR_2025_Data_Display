@@ -12,31 +12,29 @@ const CarData = ({ activeTab }) => {
       status: 'Normal',
       history: [65, 70, 68, 75, 72, 78, 75],
     },
-    acceleration: {
-      current: 2.3,
+    slope: {
+      current: 2,
       max: 8.5,
       average: 1.8,
-      unit: 'ft/s²',
+      unit: 'm/m',
       status: 'Moderate',
       history: [1.5, 2.1, 1.8, 2.3, 2.0, 2.5, 2.3],
     },
-    charge: {
+    charge_level: {
       current: 75,
       max: 100,
       unit: '%',
       status: 'Good',
-      estimated_range: (range * current) / 100,
       range: 400,
       rangeUnit: 'km',
+      estimated_range: Math.round((400 * 75) / 100),
       history: [70, 68, 66, 65, 67, 65, 65],
     },
-    engine: {
-      rpm: 2500,
-      temperature: 85,
-      oilPressure: 45,
-      status: 'Running',
-      health: 'Good',
-      lastService: '2024-01-15',
+    recharge_rate: {
+      current: 100,
+      max: 150,
+      unit: 'W',
+      status: 'Excellent',
     },
     temperature: {
       engine: 85,
@@ -45,6 +43,14 @@ const CarData = ({ activeTab }) => {
       unit: '°C',
       status: 'Normal',
       history: [82, 84, 85, 87, 85, 86, 85],
+    },
+    // remove redundant sections and keep only those matching tabs in App.js
+    battery_consumption: {
+      current: 12.5,
+      max: 25,
+      unit: 'kW',
+      status: 'Normal',
+      history: [11.8, 12.0, 12.3, 12.1, 12.5, 12.7, 12.5],
     },
   };
 
@@ -81,9 +87,56 @@ const CarData = ({ activeTab }) => {
             <div
               key={index}
               className="chart-bar"
-              style={{ height: `${(value / 100) * 100}%` }}
+              style={{ height: `${value}%` }}
             />
           ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderSlopeData = () => (
+    <div className="data-grid">
+      <div className="metric-card primary">
+        <h3>Current Slope</h3>
+        <div className="metric-value">
+          {carData.slope.current}{' '}
+          <span className="unit">{carData.slope.unit}</span>
+        </div>
+        <div className="metric-status">{carData.slope.status}</div>
+      </div>
+
+      <div className="metric-card">
+        <h3>Max Slope</h3>
+        <div className="metric-value">
+          {carData.slope.max} <span className="unit">{carData.slope.unit}</span>
+        </div>
+      </div>
+
+      <div className="metric-card">
+        <h3>Average Slope</h3>
+        <div className="metric-value">
+          {carData.slope.average}{' '}
+          <span className="unit">{carData.slope.unit}</span>
+        </div>
+      </div>
+
+      <div className="metric-card chart">
+        <h3>Slope History</h3>
+        <div className="mini-chart">
+          {carData.slope.history.map((value, index) => {
+            // normalize to max for a percent height
+            const pct = carData.slope.max
+              ? Math.min(100, (value / carData.slope.max) * 100)
+              : Math.min(100, value * 10);
+            return (
+              <div
+                key={index}
+                className="chart-bar"
+                style={{ height: `${pct}%` }}
+              />
+            );
+          })}
         </div>
       </div>
     </div>
@@ -94,38 +147,10 @@ const CarData = ({ activeTab }) => {
       <div className="metric-card primary">
         <h3>Current Acceleration</h3>
         <div className="metric-value">
-          {carData.acceleration.current}{' '}
-          <span className="unit">{carData.acceleration.unit}</span>
+          {carData.acceleration?.current ?? '—'}
         </div>
-        <div className="metric-status">{carData.acceleration.status}</div>
-      </div>
-
-      <div className="metric-card">
-        <h3>Max Acceleration</h3>
-        <div className="metric-value">
-          {carData.acceleration.max}{' '}
-          <span className="unit">{carData.acceleration.unit}</span>
-        </div>
-      </div>
-
-      <div className="metric-card">
-        <h3>Average Acceleration</h3>
-        <div className="metric-value">
-          {carData.acceleration.average}{' '}
-          <span className="unit">{carData.acceleration.unit}</span>
-        </div>
-      </div>
-
-      <div className="metric-card chart">
-        <h3>Acceleration History</h3>
-        <div className="mini-chart">
-          {carData.acceleration.history.map((value, index) => (
-            <div
-              key={index}
-              className="chart-bar"
-              style={{ height: `${(value / 10) * 100}%` }}
-            />
-          ))}
+        <div className="metric-status">
+          {carData.acceleration?.status ?? ''}
         </div>
       </div>
     </div>
@@ -133,37 +158,55 @@ const CarData = ({ activeTab }) => {
 
   const renderFuelData = () => (
     <div className="data-grid">
+      <div className="metric-card">
+        <h3>Fuel</h3>
+        <div className="metric-value">{carData.fuel?.current ?? '—'}</div>
+      </div>
+    </div>
+  );
+
+  const renderEngineData = () => (
+    <div className="data-grid">
+      <div className="metric-card">
+        <h3>Engine</h3>
+        <div className="metric-value">{carData.engine?.status ?? '—'}</div>
+      </div>
+    </div>
+  );
+
+  const renderChargeLevelData = () => (
+    <div className="data-grid">
       <div className="metric-card primary">
-        <h3>Fuel Level</h3>
+        <h3>Charge Level</h3>
         <div className="metric-value">
-          {carData.fuel.current}{' '}
-          <span className="unit">{carData.fuel.unit}</span>
+          {carData.charge_level.current}{' '}
+          <span className="unit">{carData.charge_level.unit}</span>
         </div>
-        <div className="metric-status">{carData.fuel.status}</div>
+        <div className="metric-status">{carData.charge_level.status}</div>
         <div className="fuel-bar">
           <div
             className="fuel-fill"
-            style={{ width: `${carData.fuel.current}%` }}
+            style={{ width: `${carData.charge_level.current}%` }}
           />
         </div>
       </div>
 
       <div className="metric-card">
-        <h3>Range</h3>
+        <h3>Estimated Range</h3>
         <div className="metric-value">
-          {carData.fuel.range}{' '}
-          <span className="unit">{carData.fuel.rangeUnit}</span>
+          {carData.charge_level.estimated_range}{' '}
+          <span className="unit">{carData.charge_level.rangeUnit}</span>
         </div>
       </div>
 
       <div className="metric-card chart">
-        <h3>Fuel History</h3>
+        <h3>Charge History</h3>
         <div className="mini-chart">
-          {carData.fuel.history.map((value, index) => (
+          {carData.charge_level.history.map((value, index) => (
             <div
               key={index}
               className="chart-bar"
-              style={{ height: `${value}%` }}
+              style={{ height: `${Math.min(100, value)}%` }}
             />
           ))}
         </div>
@@ -171,39 +214,22 @@ const CarData = ({ activeTab }) => {
     </div>
   );
 
-  const renderEngineData = () => (
+  const renderRechargeRateData = () => (
     <div className="data-grid">
       <div className="metric-card primary">
-        <h3>Engine Status</h3>
-        <div className="metric-value">{carData.engine.status}</div>
-        <div className="metric-status">{carData.engine.health}</div>
-      </div>
-
-      <div className="metric-card">
-        <h3>RPM</h3>
+        <h3>Recharge Rate</h3>
         <div className="metric-value">
-          {carData.engine.rpm.toLocaleString()}{' '}
-          <span className="unit">rpm</span>
+          {carData.recharge_rate.current}{' '}
+          <span className="unit">{carData.recharge_rate.unit}</span>
         </div>
+        <div className="metric-status">{carData.recharge_rate.status}</div>
       </div>
-
       <div className="metric-card">
-        <h3>Temperature</h3>
+        <h3>Max Recharge Rate</h3>
         <div className="metric-value">
-          {carData.engine.temperature} <span className="unit">°C</span>
+          {carData.recharge_rate.max}{' '}
+          <span className="unit">{carData.recharge_rate.unit}</span>
         </div>
-      </div>
-
-      <div className="metric-card">
-        <h3>Oil Pressure</h3>
-        <div className="metric-value">
-          {carData.engine.oilPressure} <span className="unit">psi</span>
-        </div>
-      </div>
-
-      <div className="metric-card">
-        <h3>Last Service</h3>
-        <div className="metric-value">{carData.engine.lastService}</div>
       </div>
     </div>
   );
@@ -242,7 +268,34 @@ const CarData = ({ activeTab }) => {
             <div
               key={index}
               className="chart-bar"
-              style={{ height: `${(value / 100) * 100}%` }}
+              style={{ height: `${Math.min(100, value)}%` }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderBatteryConsumption = () => (
+    <div className="data-grid">
+      <div className="metric-card primary">
+        <h3>Battery Consumption</h3>
+        <div className="metric-value">
+          {carData.battery_consumption.current}{' '}
+          <span className="unit">{carData.battery_consumption.unit}</span>
+        </div>
+        <div className="metric-status">
+          {carData.battery_consumption.status}
+        </div>
+      </div>
+      <div className="metric-card chart">
+        <h3>Consumption History</h3>
+        <div className="mini-chart">
+          {carData.battery_consumption.history.map((value, index) => (
+            <div
+              key={index}
+              className="chart-bar"
+              style={{ height: `${Math.min(100, value)}%` }}
             />
           ))}
         </div>
@@ -254,12 +307,14 @@ const CarData = ({ activeTab }) => {
     switch (activeTab) {
       case 'speed':
         return renderSpeedData();
-      case 'acceleration':
-        return renderAccelerationData();
-      case 'fuel':
-        return renderFuelData();
-      case 'engine':
-        return renderEngineData();
+      case 'slope':
+        return renderSlopeData();
+      case 'charge_level':
+        return renderChargeLevelData();
+      case 'recharge_rate':
+        return renderRechargeRateData();
+      case 'battery_consumption':
+        return renderBatteryConsumption();
       case 'temperature':
         return renderTemperatureData();
       default:

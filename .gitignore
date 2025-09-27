@@ -1,2 +1,4 @@
 node_modules
 venv
+files.zip
+__pycache__

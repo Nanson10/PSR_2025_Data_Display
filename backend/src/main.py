@@ -8,6 +8,7 @@
 import databases
 import sqlalchemy
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -58,6 +59,16 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Allow frontend to access the API during development
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 
 # --- Event Handlers ---
 # These functions handle connecting to and disconnecting from the database
@@ -102,6 +113,15 @@ async def write_data(data_point: DataPoint):
     
     # Return the created data point, including the generated ID
     return {**data_point.dict(), "id": last_record_id}
+
+
+@app.get("/data/all")
+async def read_all_data():
+    """Return all rows from the vehicle_data table."""
+    query = data_points.select().order_by(data_points.c.id.desc())
+    rows = await database.fetch_all(query)
+    # convert SQLAlchemy Row objects to dicts
+    return [dict(row) for row in rows]
 
 @app.get("/")
 def read_root():
