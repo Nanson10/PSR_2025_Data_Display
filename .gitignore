@@ -2,3 +2,4 @@ node_modules
 venv
 files.zip
 __pycache__
+vehicle_data.db
