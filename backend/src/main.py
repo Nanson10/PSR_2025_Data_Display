@@ -5,6 +5,7 @@
 # 2. Run the server from your terminal:
 #    uvicorn main:app --reload
 
+import os
 import databases
 import sqlalchemy
 from fastapi import FastAPI
@@ -107,7 +108,7 @@ async def write_data(data_point: DataPoint):
         battery_consumption=data_point.battery_consumption,
         temperature=data_point.temperature
     )
-    
+    last_record_id = {}
     # Execute the query and get the ID of the last inserted row
     last_record_id = await database.execute(query)
     
@@ -122,6 +123,37 @@ async def read_all_data():
     rows = await database.fetch_all(query)
     # convert SQLAlchemy Row objects to dicts
     return [dict(row) for row in rows]
+
+@app.delete("/data/all")
+async def delete_all_data():
+    """Deletes all vehicle_data"""
+    os.remove("vehicle_data.db")
+    # SQLAlchemy setup
+    global database
+    global metadata
+    global data_points
+    global engine
+    database = databases.Database(DATABASE_URL)
+    metadata = sqlalchemy.MetaData()
+
+    # Define the table structure for our data
+    data_points = sqlalchemy.Table(
+        "vehicle_data",
+        metadata,
+        sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+        sqlalchemy.Column("timestamp", sqlalchemy.DateTime, nullable=False),
+        sqlalchemy.Column("speed", sqlalchemy.Float, nullable=False),
+        sqlalchemy.Column("slope", sqlalchemy.Float, nullable=False),
+        sqlalchemy.Column("recharge_rate", sqlalchemy.Float, nullable=False),
+        sqlalchemy.Column("battery_consumption", sqlalchemy.Float, nullable=False),
+        sqlalchemy.Column("temperature", sqlalchemy.Float, nullable=False),
+    )
+
+    # Create the database and the table if they don't exist
+    engine = sqlalchemy.create_engine(
+        DATABASE_URL, connect_args={"check_same_thread": False}
+    )
+    metadata.create_all(engine)
 
 @app.get("/")
 def read_root():

@@ -1,5 +1,5 @@
 {
-  "name": "car-data-dashboard",
+  "name": "PSR_2025_Data_Display",
   "version": "1.0.0",
   "description": "React dashboard for displaying car data under tabs",
   "main": "index.js",

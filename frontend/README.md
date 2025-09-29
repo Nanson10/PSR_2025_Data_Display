@@ -56,7 +56,7 @@ npm run build
 ## Project Structure
 
 ```
-car-data-dashboard/
+PSR_2025_Data_Display/
 ├── public/
 │   └── index.html
 ├── src/
